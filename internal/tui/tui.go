@@ -10,6 +10,7 @@ import (
 type Model struct {
 	cursor  int
 	choices []string
+	Choice  string // Field to record the final selection
 }
 
 func NewModel() Model {
@@ -37,9 +38,10 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cursor++
 			}
 		case "enter", " ":
-			if m.cursor == len(m.choices)-1 {
-				return m, tea.Quit
-			}
+			// Record selection
+			m.Choice = m.choices[m.cursor]
+			// Quit the TUI to return control to main
+			return m, tea.Quit
 		}
 	}
 	return m, nil
@@ -59,6 +61,6 @@ func (m Model) View() string {
 		s.WriteString(fmt.Sprintf("%s %s\n", cursor, choice))
 	}
 
-	s.WriteString("\nPress q/ctrl+c to exit.\n")
+	s.WriteString("\nPress Enter to select, q/ctrl+c to exit.\n")
 	return s.String()
 }
