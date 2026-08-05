@@ -8,11 +8,18 @@
 - ✅ 3.1 internal/cli: Subcommand parser (diagnose/install/tui). (TDD)
 - ✅ 3.2 internal/tui: Bubbletea shell with navigation and quit keys. (TDD)
 
-## Statistics
-- **Files created**: 13 (incl. tests and go.sum)
-- **Tests passing**: 100% (all suites green)
-- **Commits**: 7 (Conventional Commits)
+## Batch 2 (Phases 4-5) — COMPLETED
+- ✅ 4.1 Wiring: Connected all packages in `cmd/xoje/main.go`.
+- ✅ 5.1 Provision Go: Go 1.26.5 installed via mise.
+- ✅ 5.2 E2E Validation: 
+    - `xoje diagnose` detects host tools.
+    - `xoje install gentle-ai` performs real installation.
+    - `gentle-ai version` verified (v2.2.4).
+    - `~/.config/xoje/config.json` correctly updated.
+- ✅ 5.3 Final Gate: All tests passing, code formatted, and committed.
 
-## Next Steps: Batch 2 (Phases 4-5)
-- [ ] 4.1 Wiring: Connect all packages in `cmd/xoje/main.go`.
-- [ ] 5.1-5.3 E2E: Build binary and verify real installation of `gentle-ai`.
+## Statistics
+- **Files created**: 14
+- **Tests passing**: 100%
+- **Commits**: 8
+- **E2E Status**: All systems nominal.

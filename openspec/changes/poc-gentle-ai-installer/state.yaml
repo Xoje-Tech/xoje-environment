@@ -1,5 +1,4 @@
-phase: sdd-apply
-status: apply-in-progress
+phase: sdd-verify
+status: verified
 change_name: poc-gentle-ai-installer
-batch: 1
-total_batches: 2
+verdict: pass-with-warnings
