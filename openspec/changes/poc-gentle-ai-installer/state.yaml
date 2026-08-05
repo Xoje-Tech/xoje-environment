@@ -1,3 +1,5 @@
-phase: sdd-tasks
-status: tasks-ready
+phase: sdd-apply
+status: apply-in-progress
 change_name: poc-gentle-ai-installer
+batch: 1
+total_batches: 2
