@@ -28,7 +28,7 @@ func DiagnoseAll() ([]DiagnosticResult, bool) {
 	commands := []string{"go", "node", "git"}
 	results := make([]DiagnosticResult, 0, len(commands))
 	allReady := true
-	
+
 	for _, cmd := range commands {
 		res := VerifyExecutable(cmd)
 		results = append(results, res)
@@ -36,6 +36,6 @@ func DiagnoseAll() ([]DiagnosticResult, bool) {
 			allReady = false
 		}
 	}
-	
+
 	return results, allReady
 }

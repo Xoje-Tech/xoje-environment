@@ -21,7 +21,7 @@ func TestTUI(t *testing.T) {
 
 	t.Run("Navigation and Clamping", func(t *testing.T) {
 		m := NewModel()
-		
+
 		// Move down
 		raw, _ := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("j")})
 		m = raw.(Model)

@@ -4,11 +4,11 @@ import "testing"
 
 func TestParse(t *testing.T) {
 	tests := []struct {
-		name        string
-		args        []string
-		wantCmd     string
-		wantTool    string
-		wantErr     bool
+		name     string
+		args     []string
+		wantCmd  string
+		wantTool string
+		wantErr  bool
 	}{
 		{"No args - default to tui", []string{}, "tui", "", false},
 		{"Diagnose", []string{"diagnose"}, "diagnose", "", false},

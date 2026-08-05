@@ -43,13 +43,13 @@ func TestLoadOrCreate(t *testing.T) {
 func TestDefaultConfigPath(t *testing.T) {
 	home := "/home/hermes"
 	t.Setenv("HOME", home)
-	
+
 	expected := filepath.Join(home, ".config", "xoje", "config.json")
 	got, err := DefaultConfigPath()
 	if err != nil {
 		t.Fatalf("DefaultConfigPath failed: %v", err)
 	}
-	
+
 	if got != expected {
 		t.Errorf("expected %s, got %s", expected, got)
 	}
