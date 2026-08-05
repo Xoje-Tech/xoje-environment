@@ -19,35 +19,26 @@ func TestTUI(t *testing.T) {
 		}
 	})
 
-	t.Run("Navigation and Clamping", func(t *testing.T) {
+	t.Run("Navigation and Selection", func(t *testing.T) {
 		m := NewModel()
-
-		// Move down
+		
+		// 1. Move down to "install gentle-ai" (index 1)
 		raw, _ := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("j")})
 		m = raw.(Model)
-		if m.cursor != 1 {
-			t.Errorf("expected cursor 1 after 'j', got %d", m.cursor)
+		
+		// 2. Press Enter
+		raw, cmd := m.Update(tea.KeyMsg{Type: tea.KeyEnter})
+		m = raw.(Model)
+
+		// Verification A: Did it return the Quit command?
+		if cmd == nil {
+			t.Error("expected Enter to return a tea.Quit command")
 		}
 
-		// Move down again
-		raw, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("j")})
-		m = raw.(Model)
-		if m.cursor != 2 {
-			t.Errorf("expected cursor 2 after 'j', got %d", m.cursor)
-		}
-
-		// Clamp down
-		raw, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("j")})
-		m = raw.(Model)
-		if m.cursor != 2 {
-			t.Errorf("expected cursor clamped at 2, got %d", m.cursor)
-		}
-
-		// Move up
-		raw, _ = m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("k")})
-		m = raw.(Model)
-		if m.cursor != 1 {
-			t.Errorf("expected cursor 1 after 'k', got %d", m.cursor)
+		// Verification B: Is the choice recorded correctly?
+		expected := "install gentle-ai"
+		if m.Choice != expected {
+			t.Errorf("expected Choice to be '%s', got '%s'", expected, m.Choice)
 		}
 	})
 

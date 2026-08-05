@@ -37,5 +37,12 @@ Chain strategy: single local chain (PoC)
 - [x] 6.2 Add `cmd/xoje/main_test.go` with coverage for `Run()`.
 - [x] 6.3 Verify quality with `crap4go` (main score dropped from 306 to 12).
 
+## Phase 7: Update Command
+
+- [ ] 7.1 RED `internal/cli/cli_test.go`: add `update` cases (no arg, single tool). GREEN `cli.go`: implement `update` routing.
+- [ ] 7.2 Implement `update` logic in `main.go`: if tool given, run `install`; if no tool, loop over `cfg.InstalledTools`.
+- [ ] 7.3 TDD `main_test.go`: cover `update` flow.
+- [ ] 7.4 Add `update` option to TUI choices in `internal/tui/tui.go`.
+
 ## Coverage
 config-state→2.1; environment-diagnosis→2.2; tool-install→2.3+4.1 (registry); cli-commands→3.1+4.1; interactive-tui→3.2+4.1; threat matrix (subprocess)→2.3; design file table→all; E2E→Phase 5; main-wiring→6.1+6.2.

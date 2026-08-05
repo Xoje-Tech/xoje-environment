@@ -25,6 +25,7 @@ config.LoadOrCreate(~/.config/xoje/config.json) ◄── first, always
               │
   diagnose ──► verify.VerifyExecutable(go|node|git) ──► report + readiness
   install  ──► install.InstallTool(tool, bin, dry) ──► main appends tool ──► config.Save
+  update   ──► main iterates cfg.InstalledTools ──► install.InstallTool(tool, bin, dry)
   tui      ──► tea.NewProgram(tui.NewModel()).Run()
 ```
 

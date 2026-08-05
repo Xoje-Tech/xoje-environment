@@ -16,6 +16,12 @@ func Parse(args []string) (string, string, error) {
 			return "", "", fmt.Errorf("usage: xoje install [tool_name]")
 		}
 		return "install", args[1], nil
+	case "update":
+		tool := ""
+		if len(args) >= 2 {
+			tool = args[1]
+		}
+		return "update", tool, nil
 	case "tui":
 		return "tui", "", nil
 	default:

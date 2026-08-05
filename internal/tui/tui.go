@@ -10,12 +10,12 @@ import (
 type Model struct {
 	cursor  int
 	choices []string
-	Choice  string // Field to record the final selection
+	Choice  string
 }
 
 func NewModel() Model {
 	return Model{
-		choices: []string{"diagnose", "install gentle-ai", "exit"},
+		choices: []string{"diagnose", "install gentle-ai", "update", "exit"},
 	}
 }
 
@@ -38,9 +38,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cursor++
 			}
 		case "enter", " ":
-			// Record selection
 			m.Choice = m.choices[m.cursor]
-			// Quit the TUI to return control to main
 			return m, tea.Quit
 		}
 	}

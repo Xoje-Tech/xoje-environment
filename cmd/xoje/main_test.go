@@ -23,6 +23,13 @@ func TestRun(t *testing.T) {
 		}
 	})
 
+	t.Run("Update command", func(t *testing.T) {
+		err := Run([]string{"update"}, configPath)
+		if err != nil {
+			t.Errorf("Run update failed: %v", err)
+		}
+	})
+
 	t.Run("Invalid subcommand", func(t *testing.T) {
 		err := Run([]string{"frobnicate"}, configPath)
 		if err == nil {

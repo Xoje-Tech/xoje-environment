@@ -17,6 +17,8 @@ func TestParse(t *testing.T) {
 		{"Install without tool - error", []string{"install"}, "", "", true},
 		{"Unknown command - error", []string{"frobnicate"}, "", "", true},
 		{"Explicit tui", []string{"tui"}, "tui", "", false},
+		{"Update all", []string{"update"}, "update", "", false},
+		{"Update single", []string{"update", "gentle-ai"}, "update", "gentle-ai", false},
 	}
 
 	for _, tt := range tests {

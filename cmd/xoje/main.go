@@ -55,7 +55,7 @@ func dispatch(cmd string, tool string, cfg *config.Config) error {
 		if !allReady {
 			fmt.Println("\n⚠️  Warning: Missing prerequisites. Some features may fail.")
 		}
-		fmt.Println("--------------------------------\n")
+		fmt.Println("--------------------------------")
 
 	case "install":
 		fmt.Printf("\n--- 🛠  Installing: %s ---\n", tool)
@@ -65,7 +65,6 @@ func dispatch(cmd string, tool string, cfg *config.Config) error {
 		}
 		fmt.Printf("✅ %s successfully installed!\n", tool)
 
-		// Update config
 		alreadyInstalled := false
 		for _, t := range cfg.InstalledTools {
 			if t == tool {
@@ -79,7 +78,26 @@ func dispatch(cmd string, tool string, cfg *config.Config) error {
 				fmt.Printf("⚠️  Warning: failed to update config registry: %v\n", err)
 			}
 		}
-		fmt.Println("--------------------------------\n")
+		fmt.Println("--------------------------------")
+
+	case "update":
+		if tool != "" {
+			return dispatch("install", tool, cfg)
+		}
+
+		fmt.Println("\n--- 🔄 Updating Fleet ---")
+		if len(cfg.InstalledTools) == 0 {
+			fmt.Println("No tools registered in configuration.")
+		}
+		for _, t := range cfg.InstalledTools {
+			fmt.Printf("Updating %s...\n", t)
+			if err := install.InstallTool(t, "", false); err != nil {
+				fmt.Printf("  ❌ Failed to update %s: %v\n", t, err)
+			} else {
+				fmt.Printf("  ✅ %s is up to date.\n", t)
+			}
+		}
+		fmt.Println("-------------------------")
 
 	case "tui":
 		m := tui.NewModel()
@@ -95,7 +113,6 @@ func dispatch(cmd string, tool string, cfg *config.Config) error {
 			return nil
 		}
 
-		// Feedback visual de la elección
 		fmt.Printf("\n🚀 Selected from TUI: %s\n", tm.Choice)
 		
 		if strings.HasPrefix(tm.Choice, "install ") {

@@ -74,6 +74,15 @@ On a routing or execution error the CLI MUST exit non-zero; on success it MUST e
 - WHEN the process exits
 - THEN the exit code is non-zero
 
+### Requirement: update subcommand
+
+The `update` subcommand MUST accept an optional tool name and route to the update capability.
+
+#### Scenario: update invocation
+- GIVEN `xoje update`
+- WHEN the CLI routes
+- THEN tool update runs for all registered tools
+
 ## Traceability
 
 - SC-2/SC-3/SC-5: routing of diagnose/install/tui
