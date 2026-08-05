@@ -1,0 +1,52 @@
+# OpenSpec SDD configuration — xoje-environment
+schema: spec-driven
+
+context: |
+  Tech stack: Go 1.22+ CLI + TUI (module github.com/Xoje-Tech/xoje-environment); Charm Bubbletea; YAML/JSON config.
+  Architecture: compiled Go binary; domain modules cli/, tui/, agents/, env/ (clean, domain-driven structure).
+  Testing: go test (Go stdlib); RED-GREEN-REFACTOR mandated by implementation plan (strict TDD marker found).
+  Style: standard Go conventions (gofmt, go vet); domain-driven package layout; English artifacts.
+  Note: Go toolchain NOT installed on the current host — install before first apply/verify run.
+
+strict_tdd: true
+
+testing:
+  runner:
+    command: "go test ./..."
+    framework: Go standard library (testing)
+  layers:
+    unit: "go test ./..."
+    integration: "go test ./... (httptest) — planned, none scaffolded yet"
+    e2e: "none detected"
+  coverage:
+    available: true
+    command: "go test -cover ./..."
+  quality:
+    linter: "none installed (golangci-lint recommended)"
+    type_checker: "go vet"
+    formatter: "gofmt"
+
+rules:
+  proposal:
+    - Include rollback plan for risky changes
+  specs:
+    - Use Given/When/Then for scenarios
+    - Use RFC 2119 keywords (MUST, SHALL, SHOULD, MAY)
+  design:
+    - Include sequence diagrams for complex flows
+    - Document architecture decisions with rationale
+  tasks:
+    - Group by phase, use hierarchical numbering
+    - Keep tasks completable in one session
+  apply:
+    guidelines:
+      - Follow existing code patterns
+      - Keep modules decoupled: cli -> tui/agents/env boundaries per plan
+    tdd: true
+    test_command: "go test ./..."
+  verify:
+    test_command: "go test ./..."
+    build_command: "go build ./..."
+    coverage_threshold: 0
+  archive:
+    - Warn before merging destructive deltas
