@@ -1,5 +1,5 @@
 bin/
 dist/
-xoje
+/xoje
 .env
 target/
