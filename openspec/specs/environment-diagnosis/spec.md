@@ -1,54 +1,53 @@
-# environment-diagnosis Specification
+# environment-diagnosis Specification (v2.0)
 
 ## Purpose
 
-Checks whether the host satisfies the prerequisites for tool installation by resolving `go`, `node`, and `git` on the system PATH, and reports aggregate readiness.
+Upgrades the basic prerequisite checks into deep health validations, covering version requirements, network reachability, and configuration integrity.
 
 ## Requirements
 
-### Requirement: Prerequisite set
+### Requirement: Go Version Validation
 
-Diagnosis MUST check exactly the prerequisites `go`, `node`, and `git`.
+The system MUST check the Go toolchain version and ensure it is >= 1.22.
 
-#### Scenario: Full prerequisite check
+#### Scenario: Go version check
+- GIVEN Go version 1.26.5 installed
+- WHEN `doctor` runs the Go check
+- THEN it reports PASS with the detected version.
 
-- GIVEN a host
-- WHEN diagnosis runs
-- THEN availability is reported for `go`, `node`, and `git`
+#### Scenario: Old Go version
+- GIVEN Go version 1.21 installed
+- WHEN `doctor` runs the Go check
+- THEN it reports FAIL and provides the remedy "Upgrade to Go 1.22+".
 
-### Requirement: LookPath-based availability
+### Requirement: Connectivity Probes
 
-For each prerequisite, availability MUST be determined with `exec.LookPath`; the result MUST include the tool name, a boolean availability flag, and the resolved path (empty when unavailable).
+The system MUST verify that the Go proxy and GitHub are reachable.
 
-#### Scenario: Tool present
+#### Scenario: Network check
+- GIVEN a host with internet access
+- WHEN `doctor` probes `https://proxy.golang.org`
+- THEN it reports PASS if the status is 200 OK within 3 seconds.
 
-- GIVEN `go` resolves on PATH
-- WHEN diagnosis checks `go`
-- THEN the result reports available with the resolved path
+### Requirement: Config Health Check
 
-#### Scenario: Tool absent
+The system MUST validate the local `config.json` file for readability and presence of required fields (e.g., `active_persona`).
 
-- GIVEN a name that does not resolve on PATH
-- WHEN diagnosis checks it
-- THEN the result reports unavailable with an empty path
+#### Scenario: Valid config
+- GIVEN a valid JSON config at `~/.config/xoje/config.json`
+- WHEN `doctor` runs
+- THEN it reports PASS for the configuration check.
 
-### Requirement: Aggregate readiness
+### Requirement: Aggregate Readiness
 
-Diagnosis MUST aggregate the per-prerequisite results and MUST indicate whether all prerequisites are available, identifying any missing ones.
+The system MUST calculate an aggregate readiness state.
 
-#### Scenario: All prerequisites present
-
-- GIVEN go, node, and git all resolve
-- WHEN diagnosis completes
-- THEN readiness is reported as fully satisfied
-
-#### Scenario: Prerequisite missing
-
-- GIVEN at least one prerequisite absent
-- WHEN diagnosis completes
-- THEN readiness is reported as not fully satisfied
-- AND the missing tools are identified
+#### Scenario: Aggregate status
+- GIVEN all checks pass
+- WHEN `doctor` finishes
+- THEN the overall status is "READY", otherwise it reports "NOT READY" or "DEGRADED".
 
 ## Traceability
 
-- SC-2: `xoje diagnose` reports go/node/git availability
+- SC-1: `xoje doctor` reports PASS for Go 1.26.5 and network.
+- SC-2: Actionable remedies for version/network issues.

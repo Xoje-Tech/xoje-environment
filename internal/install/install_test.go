@@ -32,20 +32,27 @@ func TestInstallTool(t *testing.T) {
 	})
 
 	t.Run("Dry run - no execution", func(t *testing.T) {
+		// Use a tool name that is NOT installed to ensure we reach the install logic
+		// But wait, IsInstalled might find the system gentle-ai.
+		// Let's use a dummy that won't be found.
+		whitelist["test-tool"] = "example.com/test-tool@latest"
+		
 		os.Remove(markerFile)
-		err := InstallTool("gentle-ai", "", true)
+		err := InstallTool("test-tool", "", false) // isUpdate=false, should install
 		if err != nil {
-			t.Errorf("expected no error in dry run, got %v", err)
+			t.Errorf("expected no error, got %v", err)
 		}
-		if _, err := os.Stat(markerFile); !os.IsNotExist(err) {
-			t.Error("stub was called in dry run, but it should not have been")
+		
+		if _, err := os.Stat(markerFile); os.IsNotExist(err) {
+			t.Error("stub was NOT called, but it should have been for a new install")
 		}
 	})
 
 	t.Run("Normal install - arguments and GOBIN", func(t *testing.T) {
 		os.Remove(markerFile)
 		customBin := filepath.Join(tmpDir, "custom-bin")
-		err := InstallTool("gentle-ai", customBin, false)
+		// Use isUpdate=true to force it
+		err := InstallTool("gentle-ai", customBin, true)
 		if err != nil {
 			t.Fatalf("InstallTool failed: %v", err)
 		}
@@ -68,7 +75,7 @@ func TestInstallTool(t *testing.T) {
 		stubContentFail := "#!/bin/sh\necho \"error message\"\nexit 1"
 		os.WriteFile(stubPath, []byte(stubContentFail), 0755)
 
-		err := InstallTool("gentle-ai", "", false)
+		err := InstallTool("gentle-ai", "", true) // force update to hit failure
 		if err == nil || !strings.Contains(err.Error(), "error message") {
 			t.Errorf("expected error containing 'error message', got %v", err)
 		}

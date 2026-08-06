@@ -10,7 +10,7 @@ import (
 	"github.com/Xoje-Tech/xoje-environment/internal/config"
 	"github.com/Xoje-Tech/xoje-environment/internal/install"
 	"github.com/Xoje-Tech/xoje-environment/internal/tui"
-	"github.com/Xoje-Tech/xoje-environment/internal/verify"
+	"github.com/Xoje-Tech/xoje-environment/internal/tui/styles"
 )
 
 func main() {
@@ -42,65 +42,53 @@ func Run(args []string, configPath string) error {
 
 func dispatch(cmd string, tool string, cfg *config.Config) error {
 	switch cmd {
-	case "diagnose":
-		fmt.Println("\n--- 🔍 Environment Diagnosis ---")
-		results, allReady := verify.DiagnoseAll()
-		for _, res := range results {
-			if res.Available {
-				fmt.Printf("  ✅ [%s] available: %s\n", res.Name, res.Path)
-			} else {
-				fmt.Printf("  ❌ [%s] NOT found\n", res.Name)
-			}
+	case "doctor":
+		m := tui.NewModel(cfg.InstalledTools)
+		m.Choice = "doctor"
+		p := tea.NewProgram(m)
+		if _, err := p.Run(); err != nil {
+			return fmt.Errorf("doctor command error: %w", err)
 		}
-		if !allReady {
-			fmt.Println("\n⚠️  Warning: Missing prerequisites. Some features may fail.")
-		}
-		fmt.Println("--------------------------------")
+		return nil
 
 	case "install":
-		fmt.Printf("\n--- 🛠  Installing: %s ---\n", tool)
+		path, exists := install.IsInstalled(tool)
+		if exists {
+			fmt.Printf("%s %s is already in PATH at: %s\n", styles.SuccessStyle.Render("✓"), tool, styles.MutedStyle.Render(path))
+			registerTool(tool, cfg)
+			return nil
+		}
+
+		fmt.Printf("\n%s %s\n", styles.TitleStyle.Render("🛠  Installing:"), styles.IrisStyle.Render(tool))
 		err := install.InstallTool(tool, "", false)
 		if err != nil {
 			return fmt.Errorf("installation failed: %w", err)
 		}
-		fmt.Printf("✅ %s successfully installed!\n", tool)
-
-		alreadyInstalled := false
-		for _, t := range cfg.InstalledTools {
-			if t == tool {
-				alreadyInstalled = true
-				break
-			}
-		}
-		if !alreadyInstalled {
-			cfg.InstalledTools = append(cfg.InstalledTools, tool)
-			if err := cfg.Save(); err != nil {
-				fmt.Printf("⚠️  Warning: failed to update config registry: %v\n", err)
-			}
-		}
-		fmt.Println("--------------------------------")
+		registerTool(tool, cfg)
+		return nil
 
 	case "update":
 		if tool != "" {
-			return dispatch("install", tool, cfg)
+			fmt.Printf("\n%s %s\n", styles.TitleStyle.Render("🔄 Updating:"), styles.IrisStyle.Render(tool))
+			if err := install.InstallTool(tool, "", true); err != nil {
+				return fmt.Errorf("failed to update %s: %w", tool, err)
+			}
+			registerTool(tool, cfg)
+			return nil
 		}
 
-		fmt.Println("\n--- 🔄 Updating Fleet ---")
+		fmt.Printf("\n%s\n", styles.TitleStyle.Render("🔄 Updating Fleet"))
 		if len(cfg.InstalledTools) == 0 {
-			fmt.Println("No tools registered in configuration.")
+			fmt.Println(styles.MutedStyle.Render("No tools registered in configuration."))
 		}
 		for _, t := range cfg.InstalledTools {
-			fmt.Printf("Updating %s...\n", t)
-			if err := install.InstallTool(t, "", false); err != nil {
-				fmt.Printf("  ❌ Failed to update %s: %v\n", t, err)
-			} else {
-				fmt.Printf("  ✅ %s is up to date.\n", t)
+			if err := install.InstallTool(t, "", true); err != nil {
+				fmt.Printf("  %s Failed to update %s: %v\n", styles.ErrorStyle.Render("❌"), t, err)
 			}
 		}
-		fmt.Println("-------------------------")
 
 	case "tui":
-		m := tui.NewModel()
+		m := tui.NewModel(cfg.InstalledTools)
 		p := tea.NewProgram(m)
 		finalModel, err := p.Run()
 		if err != nil {
@@ -113,8 +101,6 @@ func dispatch(cmd string, tool string, cfg *config.Config) error {
 			return nil
 		}
 
-		fmt.Printf("\n🚀 Selected from TUI: %s\n", tm.Choice)
-		
 		if strings.HasPrefix(tm.Choice, "install ") {
 			toolName := strings.TrimPrefix(tm.Choice, "install ")
 			return dispatch("install", toolName, cfg)
@@ -126,4 +112,20 @@ func dispatch(cmd string, tool string, cfg *config.Config) error {
 	}
 
 	return nil
+}
+
+func registerTool(tool string, cfg *config.Config) {
+	alreadyInstalled := false
+	for _, t := range cfg.InstalledTools {
+		if t == tool {
+			alreadyInstalled = true
+			break
+		}
+	}
+	if !alreadyInstalled {
+		cfg.InstalledTools = append(cfg.InstalledTools, tool)
+		if err := cfg.Save(); err != nil {
+			fmt.Printf("⚠️  Warning: failed to update config registry: %v\n", err)
+		}
+	}
 }

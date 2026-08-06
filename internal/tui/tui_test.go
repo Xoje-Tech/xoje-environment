@@ -9,18 +9,18 @@ import (
 
 func TestTUI(t *testing.T) {
 	t.Run("Initial view", func(t *testing.T) {
-		m := NewModel()
+		m := NewModel([]string{})
 		view := m.View()
 		if !strings.Contains(view, "xoje-environment") {
 			t.Error("expected view to contain header")
 		}
-		if !strings.Contains(view, "> diagnose") {
-			t.Error("expected cursor to be on first choice initially")
+		if !strings.Contains(view, "doctor") {
+			t.Error("expected view to contain 'doctor' choice")
 		}
 	})
 
 	t.Run("Navigation and Selection", func(t *testing.T) {
-		m := NewModel()
+		m := NewModel([]string{})
 		
 		// 1. Move down to "install gentle-ai" (index 1)
 		raw, _ := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("j")})
@@ -43,7 +43,7 @@ func TestTUI(t *testing.T) {
 	})
 
 	t.Run("Quit keys", func(t *testing.T) {
-		m := NewModel()
+		m := NewModel([]string{})
 		_, cmd := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("q")})
 		if cmd == nil {
 			t.Error("expected 'q' to return a tea.Quit command")

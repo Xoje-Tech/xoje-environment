@@ -9,8 +9,9 @@ func Parse(args []string) (string, string, error) {
 
 	subcommand := args[0]
 	switch subcommand {
-	case "diagnose", "bootstrap":
-		return "diagnose", "", nil
+	case "doctor", "diagnose", "bootstrap":
+		// 'diagnose' and 'bootstrap' are now aliases for 'doctor'
+		return "doctor", "", nil
 	case "install":
 		if len(args) < 2 {
 			return "", "", fmt.Errorf("usage: xoje install [tool_name]")

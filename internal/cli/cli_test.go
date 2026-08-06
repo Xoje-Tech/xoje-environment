@@ -11,8 +11,9 @@ func TestParse(t *testing.T) {
 		wantErr  bool
 	}{
 		{"No args - default to tui", []string{}, "tui", "", false},
-		{"Diagnose", []string{"diagnose"}, "diagnose", "", false},
-		{"Bootstrap alias", []string{"bootstrap"}, "diagnose", "", false},
+		{"Doctor", []string{"doctor"}, "doctor", "", false},
+		{"Diagnose alias", []string{"diagnose"}, "doctor", "", false},
+		{"Bootstrap alias", []string{"bootstrap"}, "doctor", "", false},
 		{"Install with tool", []string{"install", "gentle-ai"}, "install", "gentle-ai", false},
 		{"Install without tool - error", []string{"install"}, "", "", true},
 		{"Unknown command - error", []string{"frobnicate"}, "", "", true},
