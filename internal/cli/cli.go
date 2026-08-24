@@ -1,17 +1,25 @@
 package cli
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
+// Parse takes command line arguments and returns (command, tool, error)
 func Parse(args []string) (string, string, error) {
 	if len(args) == 0 {
 		return "tui", "", nil
 	}
 
-	subcommand := args[0]
-	switch subcommand {
+	cmd := strings.ToLower(args[0])
+
+	switch cmd {
 	case "doctor", "diagnose", "bootstrap":
-		// 'diagnose' and 'bootstrap' are now aliases for 'doctor'
-		return "doctor", "", nil
+		tool := ""
+		if cmd == "doctor" && len(args) >= 2 && (args[1] == "--plain" || args[1] == "-p") {
+			tool = "--plain"
+		}
+		return "doctor", tool, nil
 	case "install":
 		if len(args) < 2 {
 			return "", "", fmt.Errorf("usage: xoje install [tool_name]")
@@ -23,9 +31,13 @@ func Parse(args []string) (string, string, error) {
 			tool = args[1]
 		}
 		return "update", tool, nil
-	case "tui":
+	case "update-all":
+		return "update-all", "", nil
+	case "tui", "help", "--help", "-h":
 		return "tui", "", nil
+	case "version", "--version", "-v":
+		return "version", "", nil
 	default:
-		return "", "", fmt.Errorf("unknown subcommand: %s", subcommand)
+		return "", "", fmt.Errorf("unknown subcommand: %s", cmd)
 	}
 }
