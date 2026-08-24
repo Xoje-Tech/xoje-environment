@@ -48,3 +48,36 @@ func TestRunner_Run(t *testing.T) {
 		t.Errorf("execution seems sequential, took %v", elapsed)
 	}
 }
+
+func TestRunnerPerCheckTimeout(t *testing.T) {
+	runner := NewRunner([]Check{
+		&MockCheck{id: "slow", name: "Slow check", delay: 100 * time.Millisecond, result: Result{Status: StatusPass}},
+	})
+	runner.timeout = 10 * time.Millisecond
+
+	start := time.Now()
+	results := runner.Run()
+	if elapsed := time.Since(start); elapsed >= 80*time.Millisecond {
+		t.Fatalf("per-check timeout did not bound execution: %v", elapsed)
+	}
+	if len(results) != 1 || results[0].Status != StatusFail || results[0].Remedy == "" {
+		t.Fatalf("timeout should produce actionable failure: %#v", results)
+	}
+}
+
+func TestAggregateReadiness(t *testing.T) {
+	for name, tc := range map[string]struct {
+		results []Result
+		want    Readiness
+	}{
+		"ready":     {[]Result{{Status: StatusPass}}, ReadinessReady},
+		"degraded":  {[]Result{{Status: StatusPass}, {Status: StatusWarn}}, ReadinessDegraded},
+		"not ready": {[]Result{{Status: StatusWarn}, {Status: StatusFail}}, ReadinessNotReady},
+	} {
+		t.Run(name, func(t *testing.T) {
+			if got := AggregateReadiness(tc.results); got != tc.want {
+				t.Fatalf("AggregateReadiness() = %q, want %q", got, tc.want)
+			}
+		})
+	}
+}
