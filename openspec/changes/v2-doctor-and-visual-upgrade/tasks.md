@@ -1,54 +1,45 @@
-# Tasks: v2.0 — Doctor & Visual Upgrade
+# Tasks: v2-doctor-and-visual-upgrade
 
-## Review Workload Forecast
+## Implementation
+- [x] Create Rose Pine style definitions in `internal/tui/styles`
+- [x] Refactor `install.go` to support idempotency and canonical paths
+- [x] Implement `doctor` health engine core
+- [x] Add PATH validation and binary collision detection in `doctor`
+- [x] Integrate `doctor` results into TUI View
+- [x] Implement interactive "Remedy" execution from TUI
+- [x] Add integration tests for shell PATH edge cases
 
-| Field | Value |
-|-------|-------|
-| Estimated changed lines | 350-500 |
-| 400-line budget risk | Medium |
-| Chained PRs recommended | Yes |
-| Suggested split | PR 1 (Styles & Engine) → PR 2 (Checks & Wiring) |
-| Delivery strategy | ask-on-risk |
-| Chain strategy | stacked-to-main |
+## Verification
+- [x] Unit tests for `internal/install`
+- [x] Unit tests for `internal/doctor`
+- [x] Unit tests for `internal/tui`
+- [x] Manual verification of binary cleanup
 
-Decision needed before apply: Yes
-Chained PRs recommended: Yes
-Chain strategy: stacked-to-main
-400-line budget risk: Medium
+## Continuation Evidence (2026-08-23)
+- `go test ./cmd/xoje -run '^TestDoctorReportIncludesAggregateReadiness$' -count=1` — exit 0.
+- `go test ./internal/tui -run '^TestDoctorRemedySelection$' -count=1` — exit 0.
+- `go test ./internal/doctor -run '^TestEnvPathCheckCanonicalBinDir$' -count=1` — exit 0.
+- `go test ./internal/cli ./cmd/xoje ./internal/doctor ./internal/install ./internal/tui -count=1` — exit 0; all 5 focused packages passed.
+- `go test ./... -count=1` — exit 0; all 7 packages with tests passed, and `internal/tui/styles` reported no test files.
+- Safe runtime CLI harness: built `./cmd/xoje` into `/tmp/xoje-v2-step3-runtime.GOSZ6P`, ran `xoje version` with isolated `HOME`/`XDG_CONFIG_HOME`, and received `xoje version 1.1.0` with exit 0. The real config checksum remained `8f8ea880e611dc664849cf772083624ec445bf5d49159dd03d57e83b1b1125b5` before and after.
 
-### Suggested Work Units
+## Final Local Evidence (2026-08-24)
+- Implementation checklist: 11/11 tasks complete.
+- `gofmt -l .` — no output.
+- `go test ./...` — exit 0.
+- `go test -race ./...` — exit 0.
+- Total test coverage — 40.2%.
+- `go vet ./...` — exit 0.
+- `go build ./...` — exit 0.
+- `git diff --check` — exit 0.
+- Dev tracker: WU1-WU3, Design Phase, and Task Phase are Done; the milestone remains open until delivery.
 
-| Unit | Goal | Likely PR | Focused test command | Runtime harness | Rollback boundary |
-|------|------|-----------|----------------------|-----------------|-------------------|
-| 1 | Foundation: Styles & Doctor Engine | PR 1 | `go test ./internal/doctor/...` | N/A (Internal API) | `internal/tui/styles`, `internal/doctor/doctor.go` |
-| 2 | Implementation: Checks & UI Wiring | PR 2 | `go run ./cmd/xoje doctor` | Manual TUI verification | `internal/doctor/checks.go`, `internal/tui/tui.go`, `cmd/xoje/main.go` |
+## Formal SDD Status
+- Proposal, design, and tasks are complete, with 11/11 task checkboxes complete.
+- Specs, apply-progress, and verify-report are absent.
+- Apply, verify, and archive remain formally blocked; the next recommended phase is spec.
+- The passing local evidence above does not constitute formal SDD verification or archival.
 
-## Phase 1: Foundation (Styles & Engine)
-
-- [x] 1.1 Create `internal/tui/styles/styles.go` with Rose Pine constants and Lipgloss styles.
-- [x] 1.2 RED: Write unit test for `doctor.Runner` with mock checks in `internal/doctor/doctor_test.go`.
-- [x] 1.3 Create `internal/doctor/doctor.go` with `Check` interface, `Result` struct, and concurrent `Runner`.
-- [x] 1.4 GREEN: Implement `Runner.Run()` logic and satisfy tests.
-
-## Phase 2: Core Implementation (Checks)
-
-- [x] 2.1 RED: Write unit tests for concrete checks in `internal/doctor/checks_test.go`.
-- [x] 2.2 Create `internal/doctor/checks.go` implementing `GoVersionCheck`, `NetworkCheck`, and `ConfigCheck`.
-- [x] 2.3 GREEN: Implement check logic ensuring correct status/remedy mapping.
-
-## Phase 3: Integration & UI Wiring
-
-- [x] 3.1 Modify `internal/tui/tui.go` to import `styles` and apply themes to components.
-- [x] 3.2 Update TUI message handling to use `doctor.Run()` for the diagnosis action.
-- [x] 3.3 Modify `cmd/xoje/main.go` to refactor `dispatch` and apply styles to CLI output.
-
-## Phase 4: Testing & Verification
-
-- [x] 4.1 Run full test suite: `go test ./...`.
-- [x] 4.2 Verify TUI appearance and concurrent doctor execution manually.
-- [x] 4.3 Verify `xoje doctor` CLI command output and framing.
-
-## Phase 5: Cleanup
-
-- [x] 5.1 Remove temporary debug prints (none found).
-- [x] 5.2 Archive the SDD change.
+## Accepted Scope Deviation
+- `internal/install/install.go` contains advanced updater version-resolution logic even though `proposal.md` declares that logic out of scope.
+- This is an accepted and documented implementation risk, not a requirement satisfied by this change.
