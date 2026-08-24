@@ -2,7 +2,10 @@ package main
 
 import (
 	"path/filepath"
+	"strings"
 	"testing"
+
+	"github.com/Xoje-Tech/xoje-environment/internal/doctor"
 )
 
 func TestRun(t *testing.T) {
@@ -32,7 +35,7 @@ func TestRun(t *testing.T) {
 			t.Error("expected error for unknown command")
 		}
 	})
-	
+
 	t.Run("Load config error", func(t *testing.T) {
 		// Pass a directory as config path to trigger read error
 		err := Run([]string{"doctor"}, tmpDir)
@@ -40,4 +43,13 @@ func TestRun(t *testing.T) {
 			t.Error("expected error loading config from directory path")
 		}
 	})
+}
+
+func TestDoctorReportIncludesAggregateReadiness(t *testing.T) {
+	report := formatDoctorReport([]doctor.Result{{
+		Name: "Example", Status: doctor.StatusWarn, Detail: "warning",
+	}})
+	if !strings.Contains(report, "READINESS: DEGRADED") {
+		t.Fatalf("report missing aggregate readiness: %q", report)
+	}
 }

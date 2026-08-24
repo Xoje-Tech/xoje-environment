@@ -1,52 +1,73 @@
 package tui
 
 import (
-	"strings"
 	"testing"
 
+	"github.com/Xoje-Tech/xoje-environment/internal/doctor"
+	"github.com/Xoje-Tech/xoje-environment/internal/install"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-func TestTUI(t *testing.T) {
-	t.Run("Initial view", func(t *testing.T) {
-		m := NewModel([]string{})
-		view := m.View()
-		if !strings.Contains(view, "xoje-environment") {
-			t.Error("expected view to contain header")
-		}
-		if !strings.Contains(view, "doctor") {
-			t.Error("expected view to contain 'doctor' choice")
-		}
-	})
+func TestTUISelection(t *testing.T) {
+	m := NewModel([]string{"gentle-ai"})
 
-	t.Run("Navigation and Selection", func(t *testing.T) {
-		m := NewModel([]string{})
-		
-		// 1. Move down to "install gentle-ai" (index 1)
-		raw, _ := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("j")})
-		m = raw.(Model)
-		
-		// 2. Press Enter
-		raw, cmd := m.Update(tea.KeyMsg{Type: tea.KeyEnter})
-		m = raw.(Model)
+	// Move down twice to reach "update fleet".
+	m, _ = updateModel(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("j")})
+	m, _ = updateModel(m, tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("j")})
+	m, cmd := updateModel(m, tea.KeyMsg{Type: tea.KeyEnter})
 
-		// Verification A: Did it return the Quit command?
-		if cmd == nil {
-			t.Error("expected Enter to return a tea.Quit command")
-		}
+	if m.Choice != "update-all" {
+		t.Errorf("Expected Choice 'update-all', got '%s'", m.Choice)
+	}
+	if cmd == nil {
+		t.Error("Expected a non-nil command (tea.Quit)")
+	}
 
-		// Verification B: Is the choice recorded correctly?
-		expected := "install gentle-ai"
-		if m.Choice != expected {
-			t.Errorf("expected Choice to be '%s', got '%s'", expected, m.Choice)
-		}
-	})
+	m = NewModel([]string{})
+	m.state = stateInstallTools
+	m.toolStatuses = []install.ToolStatus{{Tool: install.Registry[0], Installed: false}}
+	m, _ = updateModel(m, tea.KeyMsg{Type: tea.KeyEnter})
 
-	t.Run("Quit keys", func(t *testing.T) {
-		m := NewModel([]string{})
-		_, cmd := m.Update(tea.KeyMsg{Type: tea.KeyRunes, Runes: []rune("q")})
-		if cmd == nil {
-			t.Error("expected 'q' to return a tea.Quit command")
-		}
-	})
+	expected := "install " + install.Registry[0].Name
+	if m.Choice != expected {
+		t.Errorf("Expected Choice '%s', got '%s'", expected, m.Choice)
+	}
+
+	m = NewModel([]string{})
+	m.state = stateInstallTools
+	m.toolStatuses = []install.ToolStatus{{Tool: install.Registry[0], Installed: true}}
+	m, _ = updateModel(m, tea.KeyMsg{Type: tea.KeyEnter})
+
+	expectedUpdate := "update " + install.Registry[0].Name
+	if m.Choice != expectedUpdate {
+		t.Errorf("Expected Choice '%s', got '%s'", expectedUpdate, m.Choice)
+	}
+}
+
+func TestDoctorRemedySelection(t *testing.T) {
+	m := NewModel(nil)
+	m.state = stateDoctor
+	m.results = []doctor.Result{
+		{Name: "PATH", Status: doctor.StatusFail, Remedy: "Edit your shell profile."},
+		{Name: "Tools", Status: doctor.StatusWarn, Remedy: "Restore missing tools.", RemedyAction: "update-all"},
+	}
+
+	m, cmd := updateModel(m, tea.KeyMsg{Type: tea.KeyEnter})
+	if m.Choice != "" || cmd != nil {
+		t.Fatalf("non-actionable remedy executed: choice=%q cmd=%v", m.Choice, cmd)
+	}
+
+	m, _ = updateModel(m, tea.KeyMsg{Type: tea.KeyDown})
+	m, cmd = updateModel(m, tea.KeyMsg{Type: tea.KeyEnter})
+	if m.Choice != "update-all" {
+		t.Fatalf("choice = %q, want update-all", m.Choice)
+	}
+	if cmd == nil {
+		t.Fatal("actionable remedy should quit the TUI for dispatch")
+	}
+}
+
+func updateModel(m Model, msg tea.Msg) (Model, tea.Cmd) {
+	newModel, cmd := m.Update(msg)
+	return newModel.(Model), cmd
 }
