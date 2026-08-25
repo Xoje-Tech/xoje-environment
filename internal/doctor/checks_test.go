@@ -140,3 +140,90 @@ func TestDefaultChecksIncludeRuntimeReadiness(t *testing.T) {
 		}
 	}
 }
+
+func TestDefaultChecksRunFullPrerequisiteSuite(t *testing.T) {
+	home := t.TempDir()
+	binDir := filepath.Join(home, ".local", "bin")
+	if err := os.MkdirAll(binDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	for name, output := range map[string]string{
+		"go":        "go version go1.22.0 linux/amd64",
+		"node":      "v22.0.0",
+		"git":       "git version 2.46.0",
+		"engram":    `{"status":"ok"}`,
+		"gentle-ai": "healthy",
+	} {
+		path := filepath.Join(binDir, name)
+		content := "#!/bin/sh\nprintf '%s\\n' '" + output + "'\n"
+		if err := os.WriteFile(path, []byte(content), 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+	t.Setenv("HOME", home)
+	t.Setenv("PATH", binDir)
+
+	configPath := filepath.Join(home, ".config", "xoje", "config.json")
+	if err := os.MkdirAll(filepath.Dir(configPath), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(configPath, []byte(`{"active_persona":"gandalf","installed_tools":[]}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	checks := DefaultChecks(nil, configPath)
+	wantIDs := []string{
+		"go-version",
+		"node-runtime",
+		"git-runtime",
+		"env-path",
+		"network",
+		"network",
+		"config-file",
+		"tools-registry",
+		"engram-doctor",
+		"gentle-ai-doctor",
+	}
+	wantNetworkTargets := []string{"https://proxy.golang.org", "https://github.com"}
+	if len(checks) != len(wantIDs) {
+		t.Fatalf("DefaultChecks() returned %d checks, want %d", len(checks), len(wantIDs))
+	}
+	for i, check := range checks {
+		if check.ID() != wantIDs[i] {
+			t.Errorf("DefaultChecks()[%d].ID() = %q, want %q", i, check.ID(), wantIDs[i])
+		}
+	}
+
+	networkServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer networkServer.Close()
+	for i, wantTarget := range wantNetworkTargets {
+		networkCheck, ok := checks[4+i].(*NetworkCheck)
+		if !ok {
+			t.Fatalf("DefaultChecks()[%d] = %T, want *NetworkCheck", 4+i, checks[4+i])
+		}
+		if networkCheck.Target != wantTarget {
+			t.Errorf("DefaultChecks()[%d].Target = %q, want %q", 4+i, networkCheck.Target, wantTarget)
+		}
+		networkCheck.Target = networkServer.URL
+	}
+
+	results := NewRunner(checks).Run()
+	if len(results) != len(checks) {
+		t.Fatalf("Runner.Run() returned %d results for %d checks", len(results), len(checks))
+	}
+	for i, result := range results {
+		if result.Name != checks[i].Name() {
+			t.Errorf("result[%d].Name = %q, want %q", i, result.Name, checks[i].Name())
+		}
+		if result.Detail == "" {
+			t.Errorf("result[%d] (%s) has no reported detail", i, checks[i].ID())
+		}
+	}
+	for _, index := range []int{4, 5} {
+		if !strings.Contains(results[index].Detail, networkServer.URL) {
+			t.Errorf("network result does not identify its exercised target: %#v", results[index])
+		}
+	}
+}

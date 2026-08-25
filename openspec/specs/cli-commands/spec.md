@@ -16,21 +16,23 @@ With no arguments, the CLI MUST route to `tui`.
 - WHEN the CLI parses
 - THEN the routed command is `tui`
 
-### Requirement: diagnose subcommand
+### Requirement: doctor subcommand
 
-The `diagnose` subcommand MUST run the environment diagnosis capability and report per-prerequisite availability. The CLI MAY accept `bootstrap` as an alias for `diagnose`.
+The `doctor` subcommand MUST run the complete default diagnostic suite and report status, detail, available remedies, and readiness. The CLI MUST retain `diagnose` and `bootstrap` as aliases.
 
-#### Scenario: diagnose invocation
+(Previously: `diagnose` reported only go, node, and git availability, with `bootstrap` as an optional alias.)
 
-- GIVEN `xoje diagnose`
-- WHEN the CLI routes
-- THEN environment diagnosis runs and reports go/node/git availability
+#### Scenario: Doctor invocation
 
-#### Scenario: bootstrap alias
+- GIVEN `xoje doctor`
+- WHEN the CLI routes the command
+- THEN the complete default diagnostic suite runs and a doctor report is produced
 
-- GIVEN `xoje bootstrap`
-- WHEN the CLI routes
-- THEN it behaves as `diagnose`
+#### Scenario: Legacy alias
+
+- GIVEN `xoje diagnose` or `xoje bootstrap`
+- WHEN the CLI routes the command
+- THEN it behaves as `xoje doctor`
 
 ### Requirement: install subcommand
 
