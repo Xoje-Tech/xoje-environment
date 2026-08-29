@@ -1,0 +1,35 @@
+{
+  "schema": "xoje.skill-registry/v1",
+  "skills": [
+    {
+      "id": "go-project-operations",
+      "category": "operations",
+      "version": "1.0.0",
+      "metadata": {
+        "name": "go-project-operations",
+        "summary": "Operate and verify the Xoje Go project with reproducible standard-library-first workflows."
+      },
+      "capabilities": [
+        "documentation"
+      ],
+      "targets": [],
+      "path": "skills/go-project-operations/SKILL.md",
+      "source_sha256": "0e630cebf7732cd2e82cda2fc405c5dc134d454b18a3886ded61dc9a9316ec62"
+    },
+    {
+      "id": "openspec-change-conventions",
+      "category": "specification",
+      "version": "1.0.0",
+      "metadata": {
+        "name": "openspec-change-conventions",
+        "summary": "Keep OpenSpec changes scoped, testable, and separate from production implementation."
+      },
+      "capabilities": [
+        "documentation"
+      ],
+      "targets": [],
+      "path": "skills/openspec-change-conventions/SKILL.md",
+      "source_sha256": "8f07be00d7d3c042ab01b4d0e70c52e2d06f7dd09a4f2336c5eb77aa4c3df1bf"
+    }
+  ]
+}

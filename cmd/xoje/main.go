@@ -9,6 +9,7 @@ import (
 	"github.com/Xoje-Tech/xoje-environment/internal/config"
 	"github.com/Xoje-Tech/xoje-environment/internal/doctor"
 	"github.com/Xoje-Tech/xoje-environment/internal/install"
+	"github.com/Xoje-Tech/xoje-environment/internal/skills"
 	"github.com/Xoje-Tech/xoje-environment/internal/tui"
 	"github.com/Xoje-Tech/xoje-environment/internal/tui/styles"
 	tea "github.com/charmbracelet/bubbletea"
@@ -31,14 +32,18 @@ func main() {
 
 // Run executes one CLI invocation using the supplied configuration path.
 func Run(args []string, configPath string) error {
-	cfg, err := config.LoadOrCreate(configPath)
-	if err != nil {
-		return fmt.Errorf("initializing configuration: %w", err)
-	}
-
 	cmd, toolName, err := cli.Parse(args)
 	if err != nil {
 		return fmt.Errorf("arguments error: %w", err)
+	}
+
+	if cmd == "skills" {
+		return handleCommand(cmd, toolName, nil, false)
+	}
+
+	cfg, err := config.LoadOrCreate(configPath)
+	if err != nil {
+		return fmt.Errorf("initializing configuration: %w", err)
 	}
 
 	isTUI := len(args) == 0
@@ -100,6 +105,32 @@ func handleCommand(cmd, toolName string, cfg *config.Config, isTUI bool) error {
 
 	case "update-all":
 		return install.UpdateAll(cfg)
+
+	case "skills":
+		root, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("resolving repository root: %w", err)
+		}
+		switch toolName {
+		case "validate":
+			manifest, err := skills.Load(root)
+			if err != nil {
+				return err
+			}
+			fmt.Printf("Skills manifest valid: %d skill(s)\n", len(manifest.Skills))
+			return nil
+		case "list":
+			entries, err := skills.List(root)
+			if err != nil {
+				return err
+			}
+			for _, entry := range entries {
+				fmt.Printf("%s - %s\n", entry.Name, entry.Description)
+			}
+			return nil
+		default:
+			return fmt.Errorf("unknown skills action: %s", toolName)
+		}
 
 	case "tui":
 		m := tui.NewModel(cfg.InstalledTools)
