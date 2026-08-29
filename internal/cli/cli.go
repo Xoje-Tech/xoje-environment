@@ -33,6 +33,11 @@ func Parse(args []string) (string, string, error) {
 		return "update", tool, nil
 	case "update-all":
 		return "update-all", "", nil
+	case "skills":
+		if len(args) < 2 || (args[1] != "list" && args[1] != "validate") {
+			return "", "", fmt.Errorf("usage: xoje skills [list|validate]")
+		}
+		return "skills", args[1], nil
 	case "tui", "help", "--help", "-h":
 		return "tui", "", nil
 	case "version", "--version", "-v":

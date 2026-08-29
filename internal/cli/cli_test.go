@@ -20,6 +20,10 @@ func TestParse(t *testing.T) {
 		{"Explicit tui", []string{"tui"}, "tui", "", false},
 		{"Update all", []string{"update"}, "update", "", false},
 		{"Update single", []string{"update", "gentle-ai"}, "update", "gentle-ai", false},
+		{"Skills list", []string{"skills", "list"}, "skills", "list", false},
+		{"Skills validate", []string{"skills", "validate"}, "skills", "validate", false},
+		{"Skills missing action - error", []string{"skills"}, "", "", true},
+		{"Skills unknown action - error", []string{"skills", "sync"}, "", "", true},
 	}
 
 	for _, tt := range tests {
