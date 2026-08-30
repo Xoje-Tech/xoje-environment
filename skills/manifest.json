@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "skills": [
+    {
+      "name": "go-project-operations",
+      "description": "Operate and verify the Xoje Go project with reproducible standard-library-first workflows.",
+      "path": "go-project-operations",
+      "metadata": {
+        "owner": "xoje-environment",
+        "audience": "contributors"
+      }
+    },
+    {
+      "name": "openspec-change-conventions",
+      "description": "Keep OpenSpec changes scoped, testable, and separate from production implementation.",
+      "path": "openspec-change-conventions",
+      "metadata": {
+        "owner": "xoje-environment",
+        "audience": "contributors"
+      }
+    }
+  ]
+}
